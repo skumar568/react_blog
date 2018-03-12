@@ -1,13 +1,10 @@
 import React, { Component } from 'react';
 import { Field, reduxForm } from 'redux-form';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { doLogin } from '../actions';
 
 class Login extends Component {
-    state = {
-        redirectToReferrer: false
-    };
 
     renderField(field){
         const { meta: { touched, error } } = field;
@@ -26,17 +23,16 @@ class Login extends Component {
     }
 
     onSubmit(values){
-        this.props.doLogin(values, ()=>{
-            this.setState({ redirectToReferrer: true });
-        });
+        this.props.doLogin(values);
     }
 
     render(){
+        console.log('in login render');
         const { handleSubmit } = this.props;
         const { from } = this.props.location.state || { from: { pathname: "/" } };
-        const { redirectToReferrer } = this.state;
     
-        if (redirectToReferrer) {
+        if (this.props.isAuthenticated) {
+            console.log('redirecting to ',from);
           return <Redirect to={from} />;
         }
 
@@ -73,9 +69,14 @@ function validate(values) {
     return errors;
 }
 
+function mapStateToProps( {user} ){
+    console.log('login: in mapStateToProps', user.isAuthenticated);
+    return { isAuthenticated: user.isAuthenticated };
+}
+
 export default reduxForm({
     validate,
     form: 'LoginForm'
 })(
-    connect(null, { doLogin } )(Login)
+    connect(mapStateToProps, { doLogin } )(Login)
 );
